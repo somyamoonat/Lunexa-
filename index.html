@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lunexa | Peer-to-Peer Smart Learning Platform</title>
+  <link rel="icon" type="image/png" href="logo-full.png">
+  <meta name="description"
+    content="Lunexa is a peer-to-peer (P2P) smart digital learning platform connecting school students with verified college mentors.">
+
+  <!-- Google Fonts: Outfit, Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <!-- Tailwind CSS CDN with custom config -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              200: '#C7D2FE',
+              300: '#A5B4FC',
+              400: '#818CF8',
+              500: '#6366F1',
+              600: '#4F46E5', // Primary brand color
+              700: '#4338CA',
+              800: '#3730A3',
+              900: '#312E81',
+            },
+            accent: {
+              500: '#10B981', // Secondary Emerald
+              600: '#059669',
+            },
+            rating: {
+              500: '#F59E0B', // Amber 500
+            },
+            darkBg: '#0B0F19',
+            darkNav: '#0F172A',
+            darkCard: '#131B2E',
+          },
+          fontFamily: {
+            sans: ['"Inter"', '-apple-system', 'sans-serif'],
+            display: ['"Outfit"', '"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          animation: {
+            'marquee': 'marquee 28s linear infinite',
+            'marquee-slow': 'marquee 40s linear infinite',
+            'shimmer': 'shimmer 2s infinite',
+            'radar-spin': 'radar-spin 4s linear infinite',
+          },
+          keyframes: {
+            marquee: {
+              '0%': { transform: 'translateX(0%)' },
+              '100%': { transform: 'translateX(-50%)' }
+            },
+            shimmer: {
+              '100%': { transform: 'translateX(100%)' }
+            },
+            'radar-spin': {
+              'from': { transform: 'rotate(0deg)' },
+              'to': { transform: 'rotate(360deg)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel Standalone for JSX parsing -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Lucide Icons Library -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Identity Services (Sign in with Google) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-slate-50 text-slate-800 dark:bg-darkBg dark:text-slate-100 min-h-screen transition-colors duration-200">
+  <div id="root"></div>
+
+  <!-- Application script loaded via Babel -->
+  <script type="text/babel" src="app.js"></script>
+</body>
+
+</html>
