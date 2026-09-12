@@ -1,8 +1,9 @@
 const { useState, useEffect, useRef, useMemo } = React;
 
-// Google OAuth 2.0 Client ID
+// Google OAuth & Groq AI Configuration
 const GOOGLE_CLIENT_ID = "484190105845-7hmcoq9ped5uo5m20cjlok37curofrn0.apps.googleusercontent.com";
-const GOOGLE_MEET_API_KEY = "AIzaSyCnhwR62-6Um2CH7kquwDFg-9eYIVooI9c";
+const GROQ_API_KEY = "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";
+
 
 // Supabase Real Backend Configuration
 const SUPABASE_URL = "https://jpurokfkmigkbrzxdbry.supabase.co";
@@ -3291,8 +3292,6 @@ function LiveClassroomPreviewCard({ onOpenLiveRoom }) {
 // =========================================================================
 function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [apiKey, setApiKey] = useState(localStorage.getItem('lunexa_gemini_api_key') || '');
-  const [showKeyInput, setShowKeyInput] = useState(false);
   const [inputMsg, setInputMsg] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
@@ -3312,17 +3311,6 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isOpen, isTyping]);
-
-  const handleSaveApiKey = (key) => {
-    const trimmed = key.trim();
-    setApiKey(trimmed);
-    if (trimmed) {
-      localStorage.setItem('lunexa_gemini_api_key', trimmed);
-    } else {
-      localStorage.removeItem('lunexa_gemini_api_key');
-    }
-    setShowKeyInput(false);
-  };
 
   const evaluateMathQuery = (query) => {
     const lower = query.toLowerCase().trim();
@@ -3373,61 +3361,97 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
     setIsTyping(true);
     const lower = userQuery.toLowerCase().trim();
 
-    // 1. INSTANT JS MATH & EXPRESSION SOLVER (Direct result in 1ms)
+    // 1. INSTANT ULTRA-FAST GROQ LPU AI ENGINE (ChatGPT quality)
+    const activeKey = GROQ_API_KEY;
+    if (activeKey) {
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${activeKey}`
+          },
+          body: JSON.stringify({
+            model: 'qwen/qwen3.8-27b',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are Lunexa AI, a smart, friendly, highly intelligent 24/7 academic tutor and conversational study companion. Answer the student naturally, conversationally, and accurately like ChatGPT. For math, physics, chemistry, biology, CS, or general queries, explain step-by-step. Do NOT output markdown bold asterisks (**) or any asterisks (*) in your response. Write clean plain text without formatting symbols.'
+              },
+              {
+                role: 'user',
+                content: userQuery
+              }
+            ],
+            max_tokens: 400,
+            temperature: 0.7
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.choices && data.choices[0]?.message?.content) {
+            const reply = data.choices[0].message.content.trim();
+            finishReply(reply);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("Groq AI API notice, switching to secondary AI solver:", err);
+      }
+    }
+
+    // 2. INSTANT JS MATH & EXPRESSION SOLVER (Direct result in 1ms)
     const mathResult = evaluateMathQuery(userQuery);
     if (mathResult) {
       finishReply(mathResult);
       return;
     }
 
-    // 2. GOOGLE GEMINI 1.5 FLASH AI ENGINE
-    const activeKey = apiKey.trim() || GOOGLE_MEET_API_KEY;
-    if (activeKey && activeKey.startsWith('AIzaSy')) {
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${activeKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: `You are Lunexa AI, a professional academic tutor. Provide a direct, concise, clean, and accurate response to the student's question. Do NOT use markdown bold asterisks (** or *), formatting characters, or emojis. Keep the formatting clean and readable plain text. Question: ${userQuery}`
-                }]
-              }]
-            })
-          }
-        );
-
-        const data = await response.json();
-        if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-          const reply = data.candidates[0].content.parts[0].text;
-          finishReply(reply);
-          return;
-        }
-      } catch (err) {
-        console.warn("Gemini API notice, switching to secondary AI knowledge solver:", err);
-      }
+    // 3. INSTANT CONVERSATIONAL & GREETING PATTERNS
+    if (/^(hi|hello|hey|greetings|good morning|good afternoon|good evening|yo)\b/i.test(lower)) {
+      finishReply("Hello! I'm Lunexa AI, your 24/7 learning assistant. What subject or concept would you like to discuss today?");
+      return;
     }
 
-    // 3. STEM & PLATFORM KNOWLEDGE SOLVER
+    if (/\b(how are you|how are u|how\'s it going|how is it going|how do you do)\b/i.test(lower)) {
+      finishReply("I'm doing great, thank you for asking! I'm ready to help you with math, physics, chemistry, biology, coding, or Lunexa platform features. How can I assist your learning today?");
+      return;
+    }
+
+    if (/\b(who are you|what are you|what is your name)\b/i.test(lower)) {
+      finishReply("I'm Lunexa AI, your 24/7 intelligent study companion. I help school and competitive exam (JEE/NEET) students solve problems, understand concepts, and book live mentor sessions!");
+      return;
+    }
+
+    if (/\b(thank you|thanks|thx|awesome|great|cool|nice)\b/i.test(lower)) {
+      finishReply("You're very welcome! Feel free to ask whenever you need help with any question or assignment.");
+      return;
+    }
+
+    if (/\b(who made you|who created you|who built you)\b/i.test(lower)) {
+      finishReply("I was built by the Lunexa team to provide instant 24/7 academic support and connect students with top ranker mentors from IIT, NIT, and AIIMS.");
+      return;
+    }
+
+    // 4. STEM & PLATFORM KNOWLEDGE SOLVER
     if (lower.includes('quadratic') || lower.includes('x^2') || lower.includes('x²')) {
-      finishReply(`Quadratic Formula: x = [-b ± √(b² - 4ac)] / 2a\n\nExample for x² - 5x + 6 = 0: a=1, b=-5, c=6 → x = 3 or x = 2`);
+      finishReply("Quadratic Formula: x = [-b ± √(b² - 4ac)] / 2a\n\nExample for x² - 5x + 6 = 0: a=1, b=-5, c=6 → x = 3 or x = 2");
       return;
     }
 
     if (lower.includes('calculus') || lower.includes('derivative') || lower.includes('integration') || lower.includes('d/dx')) {
-      finishReply(`Calculus Rules:\n• Power Rule: d/dx(xⁿ) = n·xⁿ⁻¹\n• Integral Rule: ∫ xⁿ dx = (xⁿ⁺¹)/(n+1) + C\n• Example: d/dx (3x⁴ + 5x²) = 12x³ + 10x`);
+      finishReply("Calculus Rules:\n• Power Rule: d/dx(xⁿ) = n·xⁿ⁻¹\n• Integral Rule: ∫ xⁿ dx = (xⁿ⁺¹)/(n+1) + C\n• Example: d/dx (3x⁴ + 5x²) = 12x³ + 10x");
       return;
     }
 
     if (lower.includes('newton') || lower.includes('motion') || lower.includes('force')) {
-      finishReply(`Newton's Laws of Motion:\n1. Inertia: An object remains at rest or in uniform motion unless acted upon by an external force.\n2. F = m·a (Force = mass × acceleration)\n3. Action & Reaction: For every action, there is an equal and opposite reaction.`);
+      finishReply("Newton's Laws of Motion:\n1. Inertia: An object remains at rest or in uniform motion unless acted upon by an external force.\n2. F = m·a (Force = mass × acceleration)\n3. Action & Reaction: For every action, there is an equal and opposite reaction.");
       return;
     }
 
     if (lower.includes('photosynthesis')) {
-      finishReply(`Photosynthesis Equation:\n6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\nOccurs in plant chloroplasts using chlorophyll.`);
+      finishReply("Photosynthesis Equation:\n6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\nOccurs in plant chloroplasts using chlorophyll.");
       return;
     }
 
@@ -3436,7 +3460,27 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       return;
     }
 
-    // 4. WIKIPEDIA / DUCKDUCKGO INSTANT KNOWLEDGE RETRIEVAL
+    if (lower.includes('calculus') || lower.includes('derivative') || lower.includes('integration') || lower.includes('d/dx')) {
+      finishReply("Calculus Rules:\n• Power Rule: d/dx(xⁿ) = n·xⁿ⁻¹\n• Integral Rule: ∫ xⁿ dx = (xⁿ⁺¹)/(n+1) + C\n• Example: d/dx (3x⁴ + 5x²) = 12x³ + 10x");
+      return;
+    }
+
+    if (lower.includes('newton') || lower.includes('motion') || lower.includes('force')) {
+      finishReply("Newton's Laws of Motion:\n1. Inertia: An object remains at rest or in uniform motion unless acted upon by an external force.\n2. F = m·a (Force = mass × acceleration)\n3. Action & Reaction: For every action, there is an equal and opposite reaction.");
+      return;
+    }
+
+    if (lower.includes('photosynthesis')) {
+      finishReply("Photosynthesis Equation:\n6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\nOccurs in plant chloroplasts using chlorophyll.");
+      return;
+    }
+
+    if (lower.includes('free') || lower.includes('trial') || lower.includes('schedule')) {
+      finishReply("Every new student gets 1 FREE Live Class. Click 'Schedule 1st Class FREE' in the header to select your mentor & topic.");
+      return;
+    }
+
+    // 5. WIKIPEDIA / DUCKDUCKGO INSTANT KNOWLEDGE RETRIEVAL
     const cleanTerm = userQuery
       .replace(/^(explain|what is|tell me about|how does|define|why is|who is|meaning of|what are|describe|solution for|solve)\s+/i, '')
       .trim();
@@ -3467,14 +3511,15 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       console.warn("DuckDuckGo lookup note:", e);
     }
 
-    // 5. CLEAN SHORT DIRECT FALLBACK
-    finishReply(`${userQuery}:\n\nI'm Lunexa AI! For deep 1-on-1 derivations and subject doubts, schedule a live Google Meet class with our verified IIT/AIIMS mentors.`);
+    // 6. NATURAL CONVERSATIONAL INTELLIGENT FALLBACK
+    finishReply(`That's a great question about "${userQuery}". I am analyzing the best academic resources for you. Feel free to ask for step-by-step derivations or problem-solving steps!`);
   };
 
   const finishReply = (text) => {
     let sanitized = (text || '')
-      .replace(/\*\*/g, '')
-      .replace(/\*/g, '')
+      .replace(/\*{1,4}/g, '') // Strips *, **, ***
+      .replace(/#{1,6}\s?/g, '') // Strips markdown headings
+      .replace(/`{1,3}/g, '') // Strips backticks
       .replace(/^[🔢📐⚛🧬📖🔍💡🎁]\s*/g, '')
       .trim();
 
@@ -3526,56 +3571,24 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
                 🤖
               </div>
               <div>
-                <h3 className="font-bold text-xs">Lunexa AI Assistant</h3>
-                <div className="flex items-center gap-1.5 text-[10px] text-indigo-100">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span>Gemini 1.5 AI Active • 24/7 Online</span>
-                </div>
+                <h3 className="font-bold text-sm">Lunexa AI Assistant</h3>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => setShowKeyInput(!showKeyInput)}
-                className="p-1.5 rounded-xl hover:bg-white/20 text-indigo-100 transition-colors cursor-pointer text-xs"
-                title="API Settings"
-              >
-                ⚙️
-              </button>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-xl hover:bg-white/20 text-indigo-100 transition-colors cursor-pointer"
-                title="Close Chat"
-              >
-                <Icon name="x" className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-1.5 rounded-xl hover:bg-white/20 text-indigo-100 transition-colors cursor-pointer"
+              title="Close Chat"
+            >
+              <Icon name="x" className="w-4 h-4" />
+            </button>
           </div>
-
-          {/* OPTIONAL KEY SETTINGS */}
-          {showKeyInput && (
-            <div className="p-3.5 bg-indigo-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-xs space-y-2">
-              <div className="flex items-center justify-between font-bold text-slate-800 dark:text-slate-200 text-[11px]">
-                <span>Custom Gemini API Key</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-normal">Connected (Built-in)</span>
-              </div>
-              <input
-                type="password"
-                placeholder="Paste Custom Gemini API Key (AIzaSy...)"
-                value={apiKey}
-                onChange={(e) => handleSaveApiKey(e.target.value)}
-                className="w-full p-2 text-xs rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              />
-              <p className="text-[10px] text-slate-500 leading-tight">
-                Leave blank to use Lunexa's built-in Google Gemini 1.5 AI key automatically!
-              </p>
-            </div>
-          )}
 
           {/* MESSAGES LIST */}
           <div className="p-4 flex-1 overflow-y-auto space-y-3 text-xs">
             {messages.map((m) => {
               const isBot = m.sender === 'bot';
+              const cleanText = (m.text || '').replace(/\*{1,4}/g, '');
               return (
                 <div
                   key={m.id}
@@ -3593,7 +3606,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
                         : 'bg-[#4F46E5] text-white shadow-sm font-medium'
                     }`}
                   >
-                    {m.text}
+                    {cleanText}
                   </div>
                 </div>
               );
