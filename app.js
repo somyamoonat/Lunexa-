@@ -718,8 +718,15 @@ function App() {
   const [batchesList, setBatchesList] = useState(BATCHES);
 
   useEffect(() => {
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      const faviconTag = document.querySelector("link[rel='icon']");
+      if (faviconTag) faviconTag.href = 'favicon-dark.svg';
+    } else {
+      document.documentElement.classList.remove('dark');
+      const faviconTag = document.querySelector("link[rel='icon']");
+      if (faviconTag) faviconTag.href = 'favicon-light.svg';
+    }
     try { localStorage.setItem('lunexa-theme', theme); } catch (e) {}
   }, [theme]);
 
@@ -1515,6 +1522,7 @@ function LunexaPricingPage({ onStartFree, onFindMentor, onBrowseBatches, onSched
   const [class58Option, setClass58Option] = useState('each'); // 'each' (₹799) | 'all' (₹3999)
   const [class910Option, setClass910Option] = useState('ms'); // 'ms' (₹3999) | 'all' (₹5999)
   const [class1112Option, setClass1112Option] = useState('ms'); // 'ms' (₹4999) | 'all' (₹9999)
+  const [jeeNeetOption, setJeeNeetOption] = useState('1112'); // '1112' (₹11999/2yr) | 'dropper' (₹5999/1yr)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -1807,13 +1815,35 @@ function LunexaPricingPage({ onStartFree, onFindMentor, onBrowseBatches, onSched
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">JEE / NEET Super Pass</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Targeted Competitive Exam Rank Booster</p>
 
-            <div className="my-4 pt-2">
+            {/* Toggle Option Pill */}
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl my-4 text-xs">
+              <button
+                onClick={() => setJeeNeetOption('1112')}
+                className={`flex-1 py-1.5 rounded-lg transition-all ${jeeNeetOption === '1112' ? 'bg-white dark:bg-slate-900 text-amber-600 font-bold shadow-sm' : 'text-slate-500'}`}
+              >
+                11th + 12th (2-Yr)
+              </button>
+              <button
+                onClick={() => setJeeNeetOption('dropper')}
+                className={`flex-1 py-1.5 rounded-lg transition-all ${jeeNeetOption === 'dropper' ? 'bg-white dark:bg-slate-900 text-amber-600 font-bold shadow-sm' : 'text-slate-500'}`}
+              >
+                Dropper / 1-Yr
+              </button>
+            </div>
+
+            <div className="mb-4">
               <div className="flex items-baseline gap-1.5">
-                <span className="text-3xl font-extrabold text-slate-900 dark:text-white">₹9,999</span>
-                <span className="text-xs text-slate-400 font-semibold line-through">₹19,999</span>
+                <span className="text-3xl font-extrabold text-slate-900 dark:text-white">
+                  {jeeNeetOption === '1112' ? '₹11,999' : '₹5,999'}
+                </span>
+                <span className="text-xs text-slate-400 font-semibold line-through">
+                  {jeeNeetOption === '1112' ? '₹23,999' : '₹11,999'}
+                </span>
                 <span className="text-[10px] text-rose-500 font-extrabold">50% DEDUCTION</span>
               </div>
-              <span className="text-[10px] text-slate-400 font-medium">per subject / year (Physics/Chem/Maths/Bio)</span>
+              <span className="text-[10px] text-slate-400 font-medium">
+                {jeeNeetOption === '1112' ? 'per subject / 2 years (Full 2-Year Batch)' : 'per subject / year (Full Dropper Batch)'}
+              </span>
             </div>
 
             {/* Batch Strength Info Badge */}
@@ -1830,7 +1860,7 @@ function LunexaPricingPage({ onStartFree, onFindMentor, onBrowseBatches, onSched
               onClick={onScheduleFreeClass}
               className="w-full py-2.5 rounded-xl text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 transition-all shadow-md mb-6"
             >
-              Enroll JEE/NEET (First Class Free)
+              Enroll JEE/NEET ({jeeNeetOption === '1112' ? '11th+12th 2-Yr' : 'Dropper Batch'})
             </button>
 
             {/* Features */}
@@ -1838,6 +1868,7 @@ function LunexaPricingPage({ onStartFree, onFindMentor, onBrowseBatches, onSched
               {[
                 "1st Live Class 100% FREE",
                 "Max 100 Students Batch Capacity",
+                jeeNeetOption === '1112' ? "Complete 2-Year Syllabus (Class 11 & 12)" : "Full 1-Year Intensive Dropper Syllabus",
                 "Top Ranker Mentors (IIT Bombay, AIIMS)",
                 "50% Deduction Discount Applied",
                 "High-Yield PYQ & Mock Test Sprints",
@@ -3293,12 +3324,64 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
     setShowKeyInput(false);
   };
 
+  const evaluateMathQuery = (query) => {
+    const lower = query.toLowerCase().trim();
+
+    // Exponent check: whats 2^4, 2^4, 5^3, 2**4
+    const powMatch = lower.match(/(?:whats|what is|calc|calculate|solve)?\s*(\d+(?:\.\d+)?)\s*(?:\^|\*\*)\s*(\d+(?:\.\d+)?)/i);
+    if (powMatch) {
+      const base = parseFloat(powMatch[1]);
+      const exp = parseFloat(powMatch[2]);
+      const res = Math.pow(base, exp);
+      return `🔢 **${base}^${exp} = ${res}**`;
+    }
+
+    // Square root check: sqrt(144), square root of 16
+    const sqrtMatch = lower.match(/(?:square root of|sqrt)\s*(\d+(?:\.\d+)?)/i);
+    if (sqrtMatch) {
+      const num = parseFloat(sqrtMatch[1]);
+      return `🔢 **√${num} = ${Math.sqrt(num)}**`;
+    }
+
+    // Basic arithmetic: 5 * 8, 12 + 15, 100 / 4, 50 - 12
+    const arithMatch = lower.match(/(?:whats|what is|calc|calculate|solve)?\s*(\d+(?:\.\d+)?)\s*([\+\-\*\/])\s*(\d+(?:\.\d+)?)/i);
+    if (arithMatch) {
+      const n1 = parseFloat(arithMatch[1]);
+      const op = arithMatch[2];
+      const n2 = parseFloat(arithMatch[3]);
+      let res;
+      if (op === '+') res = n1 + n2;
+      if (op === '-') res = n1 - n2;
+      if (op === '*') res = n1 * n2;
+      if (op === '/') res = n2 !== 0 ? n1 / n2 : 'Undefined (Division by Zero)';
+      return `🔢 **${n1} ${op} ${n2} = ${res}**`;
+    }
+
+    // Percentage: 20% of 150
+    const pctMatch = lower.match(/(\d+(?:\.\d+)?)\s*%\s*(?:of)?\s*(\d+(?:\.\d+)?)/i);
+    if (pctMatch) {
+      const pct = parseFloat(pctMatch[1]);
+      const total = parseFloat(pctMatch[2]);
+      const res = (pct / 100) * total;
+      return `🔢 **${pct}% of ${total} = ${res}**`;
+    }
+
+    return null;
+  };
+
   const generateBotReply = async (userQuery) => {
     setIsTyping(true);
     const lower = userQuery.toLowerCase().trim();
-    const activeKey = apiKey.trim() || GOOGLE_MEET_API_KEY;
 
-    // 1. TIER 1: GOOGLE GEMINI 1.5 FLASH AI ENGINE (Built-in API Key connected)
+    // 1. INSTANT JS MATH & EXPRESSION SOLVER (Direct result in 1ms)
+    const mathResult = evaluateMathQuery(userQuery);
+    if (mathResult) {
+      finishReply(mathResult);
+      return;
+    }
+
+    // 2. GOOGLE GEMINI 1.5 FLASH AI ENGINE
+    const activeKey = apiKey.trim() || GOOGLE_MEET_API_KEY;
     if (activeKey && activeKey.startsWith('AIzaSy')) {
       try {
         const response = await fetch(
@@ -3309,10 +3392,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
             body: JSON.stringify({
               contents: [{
                 parts: [{
-                  text: `You are Lunexa AI, an expert 24/7 AI tutor and academic assistant on Lunexa (the peer learning platform for Class 5-12, JEE & NEET students taught by IITians & AIIMS Doctors).
-Answer the user's question directly, clearly, and accurately.
-If it is a math, physics, chemistry, biology, or coding question, provide a step-by-step solution with clear explanation.
-Question: ${userQuery}`
+                  text: `You are Lunexa AI, an expert 24/7 AI tutor on Lunexa. Give a direct, concise, and accurate answer to the user's question without unnecessary fluff. Question: ${userQuery}`
                 }]
               }]
             })
@@ -3330,38 +3410,33 @@ Question: ${userQuery}`
       }
     }
 
-    // 2. TIER 2: SMART MATH & STEM KNOWLEDGE ENGINE
+    // 3. STEM & PLATFORM KNOWLEDGE SOLVER
     if (lower.includes('quadratic') || lower.includes('x^2') || lower.includes('x²')) {
-      finishReply(`📐 **Quadratic Equation Solver:**\n\nStandard Equation: ax² + bx + c = 0\nQuadratic Formula: x = [-b ± √(b² - 4ac)] / 2a\n\n**Step-by-Step Example (x² - 5x + 6 = 0):**\n1. Identify coefficients: a = 1, b = -5, c = 6\n2. Calculate Discriminant: Δ = b² - 4ac = (-5)² - 4(1)(6) = 25 - 24 = 1\n3. Calculate Roots: x = [5 ± √1] / 2 → **x = 3** or **x = 2**\n\n*Need 1-on-1 derivations with an IIT Math mentor? Schedule your 1st Class FREE on Lunexa!*`);
+      finishReply(`📐 **Quadratic Formula:** x = [-b ± √(b² - 4ac)] / 2a\n\nExample for x² - 5x + 6 = 0: a=1, b=-5, c=6 → **x = 3** or **x = 2**`);
       return;
     }
 
     if (lower.includes('calculus') || lower.includes('derivative') || lower.includes('integration') || lower.includes('d/dx')) {
-      finishReply(`∫ **Calculus & Differentiation Rules:**\n\n• Power Rule: d/dx (xⁿ) = n·xⁿ⁻¹\n• Integral Rule: ∫ xⁿ dx = (xⁿ⁺¹)/(n+1) + C\n• Product Rule: d/dx (u·v) = u'v + uv'\n• Chain Rule: d/dx f(g(x)) = f'(g(x)) · g'(x)\n\n**Example:** d/dx (3x⁴ + 5x² - 7) = 12x³ + 10x\n\n*Master JEE Advanced Calculus with top IIT Bombay rankers on Google Meet!*`);
+      finishReply(`∫ **Calculus Rules:**\n• Power Rule: d/dx(xⁿ) = n·xⁿ⁻¹\n• Integral Rule: ∫ xⁿ dx = (xⁿ⁺¹)/(n+1) + C\n• Example: d/dx (3x⁴ + 5x²) = 12x³ + 10x`);
       return;
     }
 
-    if (lower.includes('newton') || lower.includes('motion') || lower.includes('force') || lower.includes('gravity')) {
-      finishReply(`⚛ **Newton's Laws of Motion:**\n\n1. **Law of Inertia:** An object remains at rest or in uniform motion unless acted upon by a net external force.\n2. **F = m·a:** Net Force = mass × acceleration.\n3. **Action-Reaction:** Every action has an equal and opposite reaction.\n\n*Key Formulas:* F = m·a, Momentum p = m·v, Kinetic Energy KE = ½m·v²\n\n*Schedule a live session on Google Meet to solve high-yield Physics numericals!*`);
+    if (lower.includes('newton') || lower.includes('motion') || lower.includes('force')) {
+      finishReply(`⚛ **Newton's Laws of Motion:**\n1. Inertia: Object remains at rest unless forced.\n2. F = m·a (Force = mass × acceleration)\n3. Action-Reaction: Equal and opposite forces.`);
       return;
     }
 
-    if (lower.includes('photosynthesis') || lower.includes('cell') || lower.includes('dna') || lower.includes('mitosis')) {
-      finishReply(`🧬 **Photosynthesis Concept Breakdown:**\n\nChemical Reaction:\n6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\n\n**Two Main Stages:**\n1. **Light Reactions (Thylakoid):** Uses H₂O & Sunlight → Generates ATP, NADPH & releases O₂.\n2. **Calvin Cycle (Stroma):** Uses ATP & NADPH → Fixes CO₂ into glucose.\n\n*Prepared by AIIMS Doctors for NEET UG & Board Preparation on Lunexa!*`);
-      return;
-    }
-
-    if (lower.includes('python') || lower.includes('code') || lower.includes('algorithm') || lower.includes('function')) {
-      finishReply(`💻 **Python Algorithm Solution:**\n\n\`\`\`python\n# Function to check if a number is Prime\ndef is_prime(n):\n    if n <= 1:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True\n\nprint(is_prime(29))  # Output: True\n\`\`\`\n\n*Book a 1-on-1 coding session on Google Meet with BITS Pilani CS mentors!*`);
+    if (lower.includes('photosynthesis')) {
+      finishReply(`🧬 **Photosynthesis Equation:**\n6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\nOccurs in plant chloroplasts using chlorophyll.`);
       return;
     }
 
     if (lower.includes('free') || lower.includes('trial') || lower.includes('schedule')) {
-      finishReply("🎁 Every student gets 1 Complimentary FREE Live Class upon signing up! Click '🎁 Schedule 1st Class FREE' in the header or Batches tab to pick your mentor, topic, and Google Meet time slot.");
+      finishReply("🎁 Every student gets 1 FREE Live Class! Click '🎁 Schedule 1st Class FREE' in the header to select your mentor & topic.");
       return;
     }
 
-    // 3. TIER 3: WIKIPEDIA / DUCKDUCKGO INSTANT KNOWLEDGE RETRIEVAL
+    // 4. WIKIPEDIA / DUCKDUCKGO INSTANT KNOWLEDGE RETRIEVAL
     const cleanTerm = userQuery
       .replace(/^(explain|what is|tell me about|how does|define|why is|who is|meaning of|what are|describe|solution for|solve)\s+/i, '')
       .trim();
@@ -3370,8 +3445,8 @@ Question: ${userQuery}`
       const wikiRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanTerm || userQuery)}`);
       if (wikiRes.ok) {
         const wikiData = await wikiRes.json();
-        if (wikiData.extract && wikiData.type !== 'disambiguation' && wikiData.extract.length > 25) {
-          finishReply(`📖 **${wikiData.title}:**\n\n${wikiData.extract}\n\n*Need deeper 1:1 guidance or subject tutoring? Connect with verified mentors under 'Live Classes' or schedule your 1st Class FREE!*`);
+        if (wikiData.extract && wikiData.type !== 'disambiguation' && wikiData.extract.length > 20) {
+          finishReply(`📖 **${wikiData.title}:** ${wikiData.extract}`);
           return;
         }
       }
@@ -3384,7 +3459,7 @@ Question: ${userQuery}`
       if (ddgRes.ok) {
         const ddgData = await ddgRes.json();
         if (ddgData.AbstractText) {
-          finishReply(`🔍 **${ddgData.Heading || cleanTerm}:**\n\n${ddgData.AbstractText}\n\n*Want 1-on-1 doubt solving with top rankers? Book a session on Lunexa!*`);
+          finishReply(`🔍 **${ddgData.Heading || cleanTerm}:** ${ddgData.AbstractText}`);
           return;
         }
       }
@@ -3392,8 +3467,8 @@ Question: ${userQuery}`
       console.warn("DuckDuckGo lookup note:", e);
     }
 
-    // 4. TIER 4: COMPREHENSIVE DIRECT ANSWER ENGINE
-    finishReply(`💡 **Direct Explanation for "${userQuery}":**\n\n1. **Core Concept:** ${userQuery} is a fundamental concept in secondary & competitive entrance syllabi (Class 5-12, JEE & NEET).\n2. **Key Method:** Break down the problem by identifying given variables, applying standard formulas, and solving step-by-step.\n3. **Exam Application:** Commonly tested in CBSE/State Boards & Competitive Exams.\n\n*Connect directly with verified IIT Delhi, IIT Bombay & AIIMS mentors live on Google Meet to get custom 1-on-1 derivations!*`);
+    // 5. CLEAN SHORT DIRECT FALLBACK (NO VERBOSE MARKETING DISCLAIMERS)
+    finishReply(`💡 **${userQuery}:**\n\nI'm Lunexa AI! For deep 1-on-1 derivations and subject doubts, schedule a live Google Meet class with our verified IIT/AIIMS mentors!`);
   };
 
   const finishReply = (text) => {
@@ -3603,7 +3678,7 @@ function LunexaLandingPage({ onFindMentor, onRegisterMentor, onOpenPricing, onOp
   const stats = [
     { value: `${MENTORS.length}`, label: 'Verified demo mentors' },
     { value: `${BATCHES.length}`, label: 'Live batch courses' },
-    { value: '₹0', label: 'First session' },
+    { value: 'Free', label: 'First session' },
     { value: 'IIT · NIT · AIIMS', label: 'Mentor colleges' },
   ];
 
@@ -3719,7 +3794,6 @@ function LunexaLandingPage({ onFindMentor, onRegisterMentor, onOpenPricing, onOp
                         <div className="text-slate-500 dark:text-slate-400 text-[10px]">{m.college} — {m.subjects[0]}</div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <div className="text-indigo-600 dark:text-indigo-400 font-bold text-xs">{formatFee(m.hourlyRate)}</div>
                         <div className="text-amber-500 text-[10px] font-semibold">{m.rating} stars</div>
                       </div>
                     </div>
