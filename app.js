@@ -3300,7 +3300,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
     {
       id: 1,
       sender: 'bot',
-      text: "👋 Hi! I'm Lunexa AI, your 24/7 intelligent learning assistant! Ask me any subject question (Math, Physics, Chemistry, Biology, CS, JEE/NEET), math problems, or Lunexa platform features!",
+      text: "Hi! I'm Lunexa AI, your 24/7 intelligent learning assistant. Ask me any subject question (Math, Physics, Chemistry, Biology, CS, JEE/NEET), math problem, or Lunexa platform feature!",
       time: 'Just now'
     }
   ]);
@@ -3333,14 +3333,14 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       const base = parseFloat(powMatch[1]);
       const exp = parseFloat(powMatch[2]);
       const res = Math.pow(base, exp);
-      return `🔢 **${base}^${exp} = ${res}**`;
+      return `${base}^${exp} = ${res}`;
     }
 
     // Square root check: sqrt(144), square root of 16
     const sqrtMatch = lower.match(/(?:square root of|sqrt)\s*(\d+(?:\.\d+)?)/i);
     if (sqrtMatch) {
       const num = parseFloat(sqrtMatch[1]);
-      return `🔢 **√${num} = ${Math.sqrt(num)}**`;
+      return `√${num} = ${Math.sqrt(num)}`;
     }
 
     // Basic arithmetic: 5 * 8, 12 + 15, 100 / 4, 50 - 12
@@ -3354,7 +3354,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       if (op === '-') res = n1 - n2;
       if (op === '*') res = n1 * n2;
       if (op === '/') res = n2 !== 0 ? n1 / n2 : 'Undefined (Division by Zero)';
-      return `🔢 **${n1} ${op} ${n2} = ${res}**`;
+      return `${n1} ${op} ${n2} = ${res}`;
     }
 
     // Percentage: 20% of 150
@@ -3363,7 +3363,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       const pct = parseFloat(pctMatch[1]);
       const total = parseFloat(pctMatch[2]);
       const res = (pct / 100) * total;
-      return `🔢 **${pct}% of ${total} = ${res}**`;
+      return `${pct}% of ${total} = ${res}`;
     }
 
     return null;
@@ -3392,7 +3392,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
             body: JSON.stringify({
               contents: [{
                 parts: [{
-                  text: `You are Lunexa AI, an expert 24/7 AI tutor on Lunexa. Give a direct, concise, and accurate answer to the user's question without unnecessary fluff. Question: ${userQuery}`
+                  text: `You are Lunexa AI, a professional academic tutor. Provide a direct, concise, clean, and accurate response to the student's question. Do NOT use markdown bold asterisks (** or *), formatting characters, or emojis. Keep the formatting clean and readable plain text. Question: ${userQuery}`
                 }]
               }]
             })
@@ -3412,27 +3412,27 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
 
     // 3. STEM & PLATFORM KNOWLEDGE SOLVER
     if (lower.includes('quadratic') || lower.includes('x^2') || lower.includes('x²')) {
-      finishReply(`📐 **Quadratic Formula:** x = [-b ± √(b² - 4ac)] / 2a\n\nExample for x² - 5x + 6 = 0: a=1, b=-5, c=6 → **x = 3** or **x = 2**`);
+      finishReply(`Quadratic Formula: x = [-b ± √(b² - 4ac)] / 2a\n\nExample for x² - 5x + 6 = 0: a=1, b=-5, c=6 → x = 3 or x = 2`);
       return;
     }
 
     if (lower.includes('calculus') || lower.includes('derivative') || lower.includes('integration') || lower.includes('d/dx')) {
-      finishReply(`∫ **Calculus Rules:**\n• Power Rule: d/dx(xⁿ) = n·xⁿ⁻¹\n• Integral Rule: ∫ xⁿ dx = (xⁿ⁺¹)/(n+1) + C\n• Example: d/dx (3x⁴ + 5x²) = 12x³ + 10x`);
+      finishReply(`Calculus Rules:\n• Power Rule: d/dx(xⁿ) = n·xⁿ⁻¹\n• Integral Rule: ∫ xⁿ dx = (xⁿ⁺¹)/(n+1) + C\n• Example: d/dx (3x⁴ + 5x²) = 12x³ + 10x`);
       return;
     }
 
     if (lower.includes('newton') || lower.includes('motion') || lower.includes('force')) {
-      finishReply(`⚛ **Newton's Laws of Motion:**\n1. Inertia: Object remains at rest unless forced.\n2. F = m·a (Force = mass × acceleration)\n3. Action-Reaction: Equal and opposite forces.`);
+      finishReply(`Newton's Laws of Motion:\n1. Inertia: An object remains at rest or in uniform motion unless acted upon by an external force.\n2. F = m·a (Force = mass × acceleration)\n3. Action & Reaction: For every action, there is an equal and opposite reaction.`);
       return;
     }
 
     if (lower.includes('photosynthesis')) {
-      finishReply(`🧬 **Photosynthesis Equation:**\n6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\nOccurs in plant chloroplasts using chlorophyll.`);
+      finishReply(`Photosynthesis Equation:\n6CO₂ + 6H₂O + Sunlight → C₆H₁₂O₆ (Glucose) + 6O₂\nOccurs in plant chloroplasts using chlorophyll.`);
       return;
     }
 
     if (lower.includes('free') || lower.includes('trial') || lower.includes('schedule')) {
-      finishReply("🎁 Every student gets 1 FREE Live Class! Click '🎁 Schedule 1st Class FREE' in the header to select your mentor & topic.");
+      finishReply("Every new student gets 1 FREE Live Class. Click 'Schedule 1st Class FREE' in the header to select your mentor & topic.");
       return;
     }
 
@@ -3446,7 +3446,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       if (wikiRes.ok) {
         const wikiData = await wikiRes.json();
         if (wikiData.extract && wikiData.type !== 'disambiguation' && wikiData.extract.length > 20) {
-          finishReply(`📖 **${wikiData.title}:** ${wikiData.extract}`);
+          finishReply(`${wikiData.title}: ${wikiData.extract}`);
           return;
         }
       }
@@ -3459,7 +3459,7 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       if (ddgRes.ok) {
         const ddgData = await ddgRes.json();
         if (ddgData.AbstractText) {
-          finishReply(`🔍 **${ddgData.Heading || cleanTerm}:** ${ddgData.AbstractText}`);
+          finishReply(`${ddgData.Heading || cleanTerm}: ${ddgData.AbstractText}`);
           return;
         }
       }
@@ -3467,15 +3467,21 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
       console.warn("DuckDuckGo lookup note:", e);
     }
 
-    // 5. CLEAN SHORT DIRECT FALLBACK (NO VERBOSE MARKETING DISCLAIMERS)
-    finishReply(`💡 **${userQuery}:**\n\nI'm Lunexa AI! For deep 1-on-1 derivations and subject doubts, schedule a live Google Meet class with our verified IIT/AIIMS mentors!`);
+    // 5. CLEAN SHORT DIRECT FALLBACK
+    finishReply(`${userQuery}:\n\nI'm Lunexa AI! For deep 1-on-1 derivations and subject doubts, schedule a live Google Meet class with our verified IIT/AIIMS mentors.`);
   };
 
   const finishReply = (text) => {
+    let sanitized = (text || '')
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/^[🔢📐⚛🧬📖🔍💡🎁]\s*/g, '')
+      .trim();
+
     setTimeout(() => {
       setMessages(prev => [
         ...prev,
-        { id: Date.now(), sender: 'bot', text: text, time: 'Just now' }
+        { id: Date.now(), sender: 'bot', text: sanitized, time: 'Just now' }
       ]);
       setIsTyping(false);
     }, 400);
@@ -3614,28 +3620,28 @@ function LunexaAIChatbot({ onNavigate, onOpenAuth }) {
               onClick={() => handleSend("Explain Newton's 2nd Law F=ma")}
               className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap hover:border-indigo-500 cursor-pointer"
             >
-              ⚛ F=ma Physics
+              F=ma Physics
             </button>
             <button
               type="button"
               onClick={() => handleSend("Solve x^2 - 5x + 6 = 0")}
               className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap hover:border-indigo-500 cursor-pointer"
             >
-              📐 Quadratic Math
+              Quadratic Math
             </button>
             <button
               type="button"
               onClick={() => handleSend("What is Photosynthesis?")}
               className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap hover:border-indigo-500 cursor-pointer"
             >
-              🧬 Photosynthesis
+              Photosynthesis
             </button>
             <button
               type="button"
               onClick={() => handleSend("How to claim 1 free live session?")}
               className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 whitespace-nowrap hover:border-indigo-500 cursor-pointer"
             >
-              🎁 Claim Free Class
+              Claim Free Class
             </button>
           </div>
 
