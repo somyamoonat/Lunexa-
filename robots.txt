@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://lunexa.netlify.app/sitemap.xml
+Sitemap: https://lunexaedu.vercel.app/sitemap.xml
